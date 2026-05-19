@@ -32,27 +32,17 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required', 
-                'string', 
-                'lowercase', 
-                'email', 
-                'max:255', 
-                'unique:'.User::class,
-                function ($attribute, $value, $fail) {
-                    if (str_contains($value, 'admin')) {
-                        $fail('Pendaftaran menggunakan email yang mengandung kata "admin" tidak diperbolehkan.');
-                    }
-                }
-            ],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $roleId = str_contains(strtolower($request->email), 'admin') ? 1 : 2;
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => 2, // Karyawan
+            'role_id' => $roleId,
         ]);
 
         event(new Registered($user));
